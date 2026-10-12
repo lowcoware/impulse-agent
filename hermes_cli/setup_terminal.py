@@ -9,7 +9,6 @@ import shutil
 import sys
 from pathlib import Path
 from tools import tool_backend_helpers
-from tools.environments.docker import docker_runtime_name, find_docker
 from hermes_cli import nous_subscription
 
 logger = logging.getLogger("hermes_cli.setup")

@@ -12,7 +12,6 @@ from hermes_cli.doctor_platform import _system_package_install_cmd
 from hermes_cli.doctor_report import Finding, _fail_and_issue, check_bool, check_info, check_ok, check_warn, doctor_check
 from hermes_cli.vercel_auth import describe_vercel_auth
 from hermes_constants import agent_browser_runnable, is_termux as _is_termux
-from tools.environments.docker import docker_runtime_name, docker_runtime_start_hint, find_docker
 
 
 def _safe_which(cmd: str) -> str | None:
@@ -143,7 +142,8 @@ def _check_git_and_rg(should_fix: bool, f: Finding) -> None:
         check_info(f"Install for faster search: {_system_package_install_cmd('ripgrep')}")
 
 
-_BUILTIN_TERMINAL_BACKENDS = {"local", "docker", "singularity", "modal", "managed_modal", "daytona", "vercel_sandbox", "ssh"}
+# impulse: local + ssh only, matching tools/terminal_tool_backends.py.
+_BUILTIN_TERMINAL_BACKENDS = {"local", "ssh"}
 
 
 def _check_docker_backend(terminal_env: str, running_in_container: bool, issues: list[str]) -> None:
@@ -263,7 +263,7 @@ def _check_terminal_backend(should_fix: bool, f: Finding) -> None:
     if running_in_container and terminal_env != "docker":
         check_info("Running inside a container — using local terminal backend (docker-in-docker is not configured by default)")
         terminal_env = "local"
-    _check_docker_backend(terminal_env, running_in_container, f.issues)
+    # impulse: docker backend removed, so the doctor no longer probes for it.
     if terminal_env in _BACKEND_CHECKS:
         _BACKEND_CHECKS[terminal_env](f.issues)
     elif terminal_env not in _BUILTIN_TERMINAL_BACKENDS:

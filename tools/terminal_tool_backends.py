@@ -171,30 +171,6 @@ def _build_modal_env(*, image, cwd, timeout, cc, task_id, **_):
                persistent_filesystem=res["persistent_filesystem"], task_id=task_id)
 
 
-# env_type -> (class getter, takes image, extra kwargs from (cc, resource kwargs)). SDK-backed modules
-# (daytona/vercel) are imported lazily so they are only required when that backend is selected.
-_SANDBOX_ROWS = {
-    "singularity": (lambda: _SingularityEnvironment, True, lambda cc, kw: {}),
-    "daytona": (lambda: importlib.import_module("tools.environments.daytona").DaytonaEnvironment, True,
-                lambda cc, kw: {"cpu": int(kw["cpu"])}),
-    "vercel_sandbox": (lambda: importlib.import_module("tools.environments.vercel_sandbox").VercelSandboxEnvironment,
-                       False, lambda cc, kw: {"runtime": cc.get("vercel_runtime") or None}),
-}
-
-
-def _build_sandbox_env(env_type, *, image, cwd, timeout, cc, task_id, **_):
-    cls, with_image, extra = _SANDBOX_ROWS[env_type]
-    kwargs = dict(cwd=cwd, timeout=timeout, task_id=task_id, **_resources(cc),
-                  **({"image": image} if with_image else {}))
-    kwargs.update(extra(cc, kwargs))
-    return cls()(**kwargs)
-
-
-_build_singularity_env = functools.partial(_build_sandbox_env, "singularity")
-_build_daytona_env = functools.partial(_build_sandbox_env, "daytona")
-_build_vercel_env = functools.partial(_build_sandbox_env, "vercel_sandbox")
-
-
 def _build_ssh_env(*, cwd, timeout, ssh_config, probe_only=False, **_):
     if not ssh_config or not ssh_config.get("host") or not ssh_config.get("user"):
         raise ValueError("SSH environment requires ssh_host and ssh_user to be configured")

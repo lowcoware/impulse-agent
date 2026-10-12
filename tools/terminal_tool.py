@@ -211,19 +211,11 @@ def _maybe_reap_docker_orphans(container_config: Dict[str, Any]) -> None:
         lifetime = 300
     max_age = max(60, lifetime) * 2
 
-    try:
-        from tools.environments.docker import reap_orphan_containers, _container_identity
-    except ImportError:
-        return
-    # Never fail the env-creation path because of a janitor problem.
-    with _quiet("Docker orphan reaper raised"):
-        profile = _container_identity(container_config.get("docker_shared_container_key", ""))
-        removed = reap_orphan_containers(max_age_seconds=max_age, profile_filter=profile)
-        if removed:
-            logger.info(
-                "Docker orphan reaper removed %d stale container(s) for profile %s",
-                removed, profile,
-            )
+    # impulse: docker backends are gone from this fork, so there is nothing to
+    # reap — local and ssh leave no containers behind. Kept as an early return so
+    # the caller's flow is untouched.
+    del max_age, container_config
+    return
 
 
 # Per-task environment overrides (never exposed to the model). RL/benchmark
