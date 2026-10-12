@@ -32,13 +32,6 @@ def register_cli(parent_parser: argparse.ArgumentParser) -> None:
         ("setup", "Interactive wizard: install + CA + mint tokens + write config", cmd_setup, [
             ("--tunnel-port", dict(type=int, default=None,
                                    help=f"Override the tunnel port (default {ip._DEFAULT_TUNNEL_PORT})")),
-            ("--from-bitwarden", dict(action="store_true", help=(
-                "Treat secrets as managed by Bitwarden — discover provider keys "
-                "from secrets.bitwarden config instead of the current env.  Fails "
-                "loudly if BW is unreachable rather than silently falling back."))),
-            ("--no-bitwarden", dict(action="store_true", help=(
-                "Explicitly switch credential_source back to env on re-setup "
-                "(only meaningful when the previous setup used --from-bitwarden)."))),
             ("--rotate-tokens", dict(action="store_true", help=(
                 "Mint fresh proxy tokens for every provider (default is to "
                 "preserve tokens for providers that already had one — avoids "
@@ -149,16 +142,11 @@ def _setup_mint_tokens(console: Console, args: argparse.Namespace):
     """Discover providers, merge with existing tokens (rotating on request), print the table."""
     _step(console, 3, "Mint proxy tokens for known providers")
     available_env_names: List[str] = []
-    if args.from_bitwarden:
-        available_env_names = _bitwarden_env_names(console)
-        if available_env_names is None:
-            return None
-    else:
-        # Operators commonly keep provider keys only in ~/.hermes/.env (loaded when the agent
-        # runs, NOT exported into an interactive shell); backfill so discovery sees them.
-        loaded = _load_env_file_into_environ()
-        if loaded:
-            console.print(f"  [dim]Loaded {loaded} provider key name(s) from ~/.hermes/.env for discovery.[/dim]")
+    # Operators commonly keep provider keys only in ~/.hermes/.env (loaded when the agent
+    # runs, NOT exported into an interactive shell); backfill so discovery sees them.
+    loaded = _load_env_file_into_environ()
+    if loaded:
+        console.print(f"  [dim]Loaded {loaded} provider key name(s) from ~/.hermes/.env for discovery.[/dim]")
     discovered = ip.discover_provider_mappings(available_env_names=available_env_names or None)
     # Preserve existing tokens unless rotation was requested — re-running setup must not
     # invalidate tokens baked into already-running sandboxes.
@@ -269,23 +257,14 @@ def _setup_write_config(console: Console, args: argparse.Namespace, mappings, ca
     proxy_cfg["enabled"] = True
     proxy_cfg.setdefault("auto_install", True)
     proxy_cfg.setdefault("enforce_on_docker", True)
-    # CRITICAL: never silently downgrade credential_source on re-run. A previous
-    # ``--from-bitwarden`` setup keeps bitwarden mode (the documented rotation guarantee)
-    # unless the operator passes an explicit --no-bitwarden.
-    existing_source = proxy_cfg.get("credential_source")
-    if args.from_bitwarden:
-        proxy_cfg["credential_source"] = "bitwarden"
-    elif getattr(args, "no_bitwarden", False):
-        proxy_cfg["credential_source"] = "env"
-        if existing_source == "bitwarden":
-            console.print("[yellow]Switched credential_source from bitwarden to env.[/yellow]")
-    elif existing_source == "bitwarden":
+    # impulse: внешние менеджеры паролей в форке вырезаны — credential_source всегда env.
+    # Режим bitwarden вернуть вместе с agent/secret_sources и флагом --from-bitwarden.
+    if proxy_cfg.get("credential_source") == "bitwarden":
         console.print(
-            "[dim]Keeping credential_source=bitwarden from existing config. "
-            "Pass --no-bitwarden to switch to env-based credentials.[/dim]"
+            "[yellow]credential_source was bitwarden — switching to env: "
+            "Bitwarden support is not part of this build.[/yellow]"
         )
-    else:
-        proxy_cfg["credential_source"] = "env"
+    proxy_cfg["credential_source"] = "env"
     save_config(cfg)
     return proxy_cfg
 
@@ -530,44 +509,6 @@ def cmd_config(args: argparse.Namespace) -> int:
         return 1
     console.print(str(status.config_path))
     return 0
-
-
-def _bitwarden_env_names(console: Console) -> Optional[List[str]]:
-    """Secret names from Bitwarden for ``setup --from-bitwarden``; prints the error and returns
-    ``None`` on any failure so the wizard aborts loudly instead of falling back to the host env.
-    """
-    cfg = load_config()
-    bw_cfg = (cfg.get("secrets") or {}).get("bitwarden") or {}
-    if not bw_cfg.get("enabled"):
-        console.print("  [red]✗ --from-bitwarden requested but secrets.bitwarden.enabled is false.[/red]")
-        console.print("  Run `hermes secrets bitwarden setup` first, or omit --from-bitwarden.")
-        return None
-    try:
-        from agent.secret_sources import bitwarden as bw
-        token_env = bw_cfg.get("access_token_env", "BWS_ACCESS_TOKEN")
-        access_token = os.environ.get(token_env, "").strip()
-        if not access_token:
-            console.print(f"  [red]✗ --from-bitwarden requested but {token_env} is not set in the environment.[/red]")
-            return None
-        secrets, _ = bw.fetch_bitwarden_secrets(
-            access_token=access_token, project_id=bw_cfg.get("project_id", ""), cache_ttl_seconds=0, use_cache=False
-        )
-        names = list(secrets.keys())
-        if not names:
-            console.print(
-                "  [red]✗ Bitwarden returned an empty secrets list.[/red]\n"
-                "  Check the project_id in secrets.bitwarden and the BWS access-token's project scope."
-            )
-            return None
-        console.print(f"  Pulled {len(names)} env names from Bitwarden.")
-        return names
-    except Exception as exc:  # noqa: BLE001 — explicit user-facing error
-        console.print(f"  [red]✗ Could not enumerate Bitwarden secrets: {exc}[/red]")
-        console.print(
-            "  Either fix the Bitwarden config and retry, or rerun setup "
-            "without --from-bitwarden (the proxy will read secrets from the host process env at start time)."
-        )
-        return None
 
 
 def _load_env_file_into_environ() -> int:
