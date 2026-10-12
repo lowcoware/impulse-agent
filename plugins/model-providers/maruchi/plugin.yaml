@@ -1,0 +1,5 @@
+name: maruchi-provider
+kind: model-provider
+version: 0.1.0
+description: Maruchi key-pool gateway (native Gemini API, pooled panel keys)
+author: Maruchi
