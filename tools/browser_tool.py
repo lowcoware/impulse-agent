@@ -1369,9 +1369,7 @@ SNAPSHOT_SUMMARIZE_THRESHOLD = DEFAULT_SNAPSHOT_THRESHOLD
 
 _PLUGIN_COMPAT_LAZY = {
     'BrowserUseProvider': ('plugins.browser.browser_use.provider', 'BrowserUseBrowserProvider'),
-    'BrowserbaseProvider': ('plugins.browser.browserbase.provider', 'BrowserbaseBrowserProvider'),
     'CloudBrowserProvider': ('agent.browser_provider', 'BrowserProvider'),
-    'FirecrawlProvider': ('plugins.browser.firecrawl.provider', 'FirecrawlBrowserProvider'),
     'agent_browser_runnable': ('hermes_constants', 'agent_browser_runnable'),
     'check_browser_requirements': ('tools.browser_tool_install', 'check_browser_requirements'),
     'check_browser_vision_requirements': ('tools.browser_tool_install', 'check_browser_vision_requirements'),

@@ -33,7 +33,7 @@ BROWSER_CONTROL_CAPABILITIES = frozenset({
     "browser_scroll", "browser_snapshot", "browser_tab_activate", "browser_tabs", "browser_type",
 })
 #: Privileged capabilities: fail-closed unless Developer Mode is on AND explicitly negotiated.
-BROWSER_CONTROL_DEVELOPER_CAPABILITIES = frozenset({"browser_cdp", "browser_evaluate"})
+BROWSER_CONTROL_DEVELOPER_CAPABILITIES = frozenset({"chrome_devtools", "browser_evaluate"})
 #: Artifact transport capabilities; non-developer because only a store-validated ``artifact_id`` travels.
 BROWSER_CONTROL_ARTIFACT_CAPABILITIES = frozenset({"browser_artifact_download", "browser_artifact_upload"})
 

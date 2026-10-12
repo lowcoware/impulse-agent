@@ -2812,14 +2812,6 @@ OPTIONAL_ENV_VARS = {
         "https://exa.ai/", tools=["web_search", "web_extract"]),
     "PARALLEL_API_KEY": _tool("Parallel API key for AI-native web search and extract",
         "Parallel API key", "https://parallel.ai/", tools=["web_search", "web_extract"]),
-    "FIRECRAWL_API_KEY": _tool("Firecrawl API key for web search and scraping", "Firecrawl API key",
-        "https://firecrawl.dev/", tools=["web_search", "web_extract"]),
-    "FIRECRAWL_API_URL": _tool("Firecrawl API URL for self-hosted instances (optional)",
-        "Firecrawl API URL (leave empty for cloud)", None, password=False, advanced=True),
-    "FIRECRAWL_GATEWAY_URL": _tool(
-        "Exact Firecrawl tool-gateway origin override for Nous Subscribers only (optional)",
-        "Firecrawl gateway URL (leave empty to derive from domain)", None, password=False,
-        advanced=True),
     "TOOL_GATEWAY_URL": _tool(
         "Exact shared tool-gateway origin for on-origin vendors and media uploads (optional)",
         "Shared tool-gateway URL (leave empty to derive from domain)", None,
@@ -2857,22 +2849,6 @@ OPTIONAL_ENV_VARS = {
     "BRAVE_SEARCH_API_KEY": _tool(
         "Brave Search API subscription token (free tier: 2,000 queries/mo)",
         "Brave Search subscription token", "https://brave.com/search/api/", tools=["web_search"]),
-    "BROWSERBASE_API_KEY": _tool(
-        "Browserbase API key for cloud browser (optional — local browser works without this)",
-        "Browserbase API key", "https://browserbase.com/",
-        tools=["browser_navigate", "browser_click"]),
-    "BROWSERBASE_PROJECT_ID": _tool(
-        "Browserbase project ID (optional — only needed for cloud browser)",
-        "Browserbase project ID", "https://browserbase.com/",
-        tools=["browser_navigate", "browser_click"], password=False),
-    "BROWSER_USE_API_KEY": _tool(
-        "Browser Use API key for cloud browser (optional — local browser works without this)",
-        "Browser Use API key", "https://browser-use.com/",
-        tools=["browser_navigate", "browser_click"]),
-    "FIRECRAWL_BROWSER_TTL": _tool(
-        "Firecrawl browser session TTL in seconds (optional, default 300)",
-        "Browser session TTL (seconds)", tools=["browser_navigate", "browser_click"],
-        password=False),
     "AGENT_BROWSER_ENGINE": _env(
         "Local browser engine: auto (default Chrome), lightpanda (faster, no screenshots; Browser Use mode "
         "spawns lightpanda serve), chrome", "Browser engine (auto/lightpanda/chrome)",

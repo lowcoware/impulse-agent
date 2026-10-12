@@ -322,7 +322,7 @@ def browser_cdp(method: str, params: Optional[Dict[str, Any]] = None, target_id:
 
 
 BROWSER_CDP_SCHEMA: Dict[str, Any] = {
-    "name": "browser_cdp",
+    "name": "chrome_devtools",
     "description": (
         "Send a raw Chrome DevTools Protocol (CDP) command. Escape hatch for browser operations not covered "
         "by browser_navigate, browser_click, browser_console, etc.\n\n"
@@ -394,11 +394,11 @@ def _browser_cdp_check() -> bool:
 
 
 registry.register(
-    name="browser_cdp",
+    name="chrome_devtools",
     toolset="browser-cdp",
     schema=BROWSER_CDP_SCHEMA,
     handler=lambda args, **kw: routed_browser_handler(
-        "browser_cdp", args,
+        "chrome_devtools", args,
         fallback=lambda: browser_cdp(
             method=args.get("method", ""), params=args.get("params"), target_id=args.get("target_id"),
             frame_id=args.get("frame_id"), timeout=args.get("timeout", 30.0), task_id=kw.get("task_id"),

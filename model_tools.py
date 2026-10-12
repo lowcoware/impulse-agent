@@ -470,7 +470,7 @@ _DYNAMIC_SCHEMA_REWRITERS = {
     "discord": _discord_rewriter("get_dynamic_schema_core"),
     "discord_admin": _discord_rewriter("get_dynamic_schema_admin"),
     "browser_navigate": _rewrite_browser_navigate,
-    "browser_cdp": _rewrite_browser_cdp,
+    "chrome_devtools": _rewrite_browser_cdp,
     "browser_exec": _compose_rewriters(_rewrite_browser_exec, _rewrite_input_tool_for_vault),
     "browser_type": _rewrite_input_tool_for_vault,
     "browser_vault_list": _rewrite_browser_vault,
