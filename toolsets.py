@@ -101,6 +101,12 @@ TOOLSETS = {
     "web": _ts("Web research and content extraction tools", ["web_search", "web_extract"]),
     "search": _ts("Web search only (no content extraction/scraping)", ["web_search"]),
     "vision": _ts("Image analysis and vision tools", ["vision_analyze"]),
+    "computer_use": _ts(
+        "Background desktop control via cua-driver (macOS/Windows/Linux) — "
+        "screenshots, mouse, keyboard, scroll, drag. Does NOT steal the user's cursor "
+        "or keyboard focus. Works with any tool-capable model.",
+        ["computer_use"],
+    ),
     "terminal": _ts("Terminal/command execution and process management tools", ["terminal", "process_manage"]),
     "skills": _ts(
         "Access, create, edit, and manage skill documents with specialized "
