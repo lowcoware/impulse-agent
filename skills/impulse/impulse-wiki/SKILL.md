@@ -47,6 +47,11 @@ originates, not a record of something decided elsewhere.
    `references/deep-dive.md`: real multi-page site (Home, Getting Started,
    Architecture, per-module pages with verbatim code excerpts, a
    Decisions feed), not a single index note.
+9. **Absorbing an external source into the vault and keeping it traceable**
+   (a paper, spec, transcript, or pasted write-up the vault will reason
+   over later) → `references/knowledge-base.md`: the immutable `/raw/`
+   source layer, `SCHEMA.md`, provenance/confidence signals, source-drift
+   detection, and the ingest → query → lint loop.
 
 ## Locate the skill (for script invocation)
 
@@ -77,6 +82,7 @@ operation for exact arguments.
 | references/capture-and-atomize.md | inbox triage, glossary building, tagging, zettel atomization of oversized docs | organizing raw/oversized material into the vault's shape |
 | references/deep-dive.md | team-facing multi-page wiki (Home, Getting Started, Architecture, module pages with verbatim code, Decisions feed), plus hosting a vault as a real static site | the wiki is meant to be the whole team's shared home base, not just an internal index |
 | references/self-reference.md | self-generated reference artifact — a real multi-file deep-dive wiki (`references/self-reference/`) built by this skill's own deep-dive.md workflow, documenting the suite itself with verbatim code excerpts | checking whether current deep-dive output still matches this skill's own baseline |
+| references/knowledge-base.md | the source-ingestion layer: immutable `/raw/` sources with provenance/`sha256` drift, `SCHEMA.md` (naming rule, tag taxonomy, page thresholds, contradiction policy), `log.md`, provenance/confidence signals, and the ingest → query → lint loop — from Hermes's built-in llm-wiki skill | the vault ingests outside material, or a claim needs to trace back to its source |
 
 ## Scripts
 
@@ -96,6 +102,11 @@ in its owning reference file above.
   PROJECT wiki, not a personal second brain.
 - A diagram meant to ship as a standalone shareable HTML file (not a vault
   artifact) → `impulse-artifact`'s diagram genre, not `canvas.md`.
+- Organizing and tracing ingested SOURCES (`references/knowledge-base.md`)
+  stays in scope because it decides WHERE a source lives and HOW the vault
+  links to it — but WHAT any page says is still `impulse-project-management`'s
+  call, unchanged; the layer is optional and only for vaults that ingest
+  outside material.
 - "stop impulse" / "normal mode": revert to default behavior.
 
 ## Before you finish

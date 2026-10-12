@@ -23,6 +23,13 @@ Binary-search the data flow, not the code. Log the value at the midpoint of the
 pipeline: correct there → bug is downstream; wrong → upstream. Halve again.
 Two-three probes localize it faster than reading every stage.
 
+When the pipeline has distinct components (API → service → db, CI → build →
+deploy), a complementary first pass is to instrument EVERY boundary once: log
+what enters and exits each component and verify that config/env actually
+propagates to it. Run once to see WHERE the value first goes wrong, then
+switch to binary search inside that component. The one-shot boundary pass is
+cheap and tells you which half of the system you can ignore.
+
 ## Heisenbug (vanishes when observed)
 
 The act of observing changes timing/optimization. Causes: uninitialized memory,

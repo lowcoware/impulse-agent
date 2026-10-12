@@ -25,7 +25,8 @@ Where repo-scale over-engineering hides (a diff review never sees these —
 they accrete across many PRs). If the stack has one, run a dead-code/unused-export
 tool first and treat its output as leads, not verdicts (Knip for JS/TS —
 unused files/exports/deps in one pass, ~150 zero-config plugins; ts-prune,
-Vulture for Python via AST with a confidence score):
+Vulture for Python via AST with a confidence score; depcheck for
+unused deps):
 
 - deps the stdlib or platform already ships (go.mod/package.json vs
   platform-native.md)
@@ -37,6 +38,33 @@ Vulture for Python via AST with a confidence score):
 - utils/helpers modules where half the exports have zero callers
   (verify zero-caller by grep before reporting — tool output alone false-positives on
   dynamic imports, re-exports, test-only helpers)
+- redundant state — a value that duplicates or could be derived from existing
+  state; a cache that doesn't need to exist
+- parameter sprawl — arguments bolted onto a function that should have been
+  restructured instead
+- stringly-typed code — raw strings where a constant/enum/registry already exists
+- deeply nested conditionals — ternary chains, 3+-level if/else pyramids a
+  guard clause, early return, or lookup table flattens
+- near-duplicate blocks within one file that differ only in a constant and
+  should share one function
+- AI-slop tells: comments restating the obvious line below them, defensive
+  null-checks on already-validated inputs, `as any`/`# type: ignore` casts
+  that bypass the type system
+- band-aids stacked on shared infra — an `if (caller == X)` special case in a
+  generic path, a workaround on an earlier workaround, a flag added to route
+  around a broken default (fix or revert the depth, not the symptom)
+
+## Fence
+
+Run `git blame` on any line you report for removal — know why it exists before
+calling it excess. A fence you can't explain is not a cut: mark
+`confidence: low` and leave it, don't guess. Compat shims, staged migrations,
+and isolation layers around vendored code look like dead weight but are
+deliberate design.
+
+Every finding carries evidence: `file:line`, and for a reuse cut the exact
+existing thing to call and where it lives. "There's probably a helper for
+this" is noise — drop it.
 
 ## Effort
 
@@ -67,6 +95,24 @@ is a wishlist.
 End with `net: -<N> lines, -<M> deps possible.`
 Nothing to cut: `Lean already. Ship.` — and stop.
 
+## Risk
+
+The rung says what to cut; risk says how safe the cut is — tag each finding so
+the reader knows what can be applied blind.
+
+| Risk | Looks like | Handling |
+|---|---|---|
+| `SAFE` | unused import, commented-out code, pass-through wrapper, dead export (already grep-verified) | proven no behavior change — apply blind |
+| `CAREFUL` | flatten nested conditionals, extract a shared helper, rename a local, drop derivable state | semantics unchanged — apply with tests after |
+| `RISKY` | exported symbol, API route, DB column, config key, error-handling or concurrency change | may change behavior or break a contract — flag it, never fold into a cleanup |
+
+## Order when acted on
+
+This run reports; a follow-up applies. Work safest cut first: the `SAFE` batch,
+then `CAREFUL` one file at a time with the repo's targeted tests after each,
+`RISKY` last as its own change. Re-run the linter/type check and revert any fix
+that breaks a test.
+
 ## Boundaries
 
 Complexity and size only.
@@ -77,6 +123,11 @@ Complexity and size only.
 | Dependency CVEs / supply-chain | impulse-dependency-audit |
 | One diff/PR | impulse-review |
 | Whole-service spec/ADR review | impulse-project-management |
+
+Contract names are not cuts — an exported symbol, API route path, DB column
+name, or config key breaks a consumer when renamed, so a shorter name there is
+a behavior change, not a simplification. Leave it off the findings, or list it
+as `RISKY`.
 
 `impulse:` ceiling markers belong to impulse-debt's ledger — treat a marker
 as a recorded decision and leave it off the findings list.
@@ -94,6 +145,10 @@ instead of re-litigating them.
 - Boundaries held — no correctness/security/perf/CVE items in the findings?
 - Closed with `net: -N lines, -M deps possible` or `Lean already. Ship.`?
 - Findings only, no files edited this run?
+- Every finding carries `file:line` evidence (a reuse cut names the existing thing and where it lives)?
+- Fence checked — `git blame` on every removal, unexplained intent marked `confidence: low`?
+- Contract names (export/route/db/config) kept out of the cuts?
+- Risk tagged on each finding (SAFE/CAREFUL/RISKY)?
 
 Lists findings, applies nothing. One-shot per run.
 "stop impulse" / "normal mode": revert to default style.

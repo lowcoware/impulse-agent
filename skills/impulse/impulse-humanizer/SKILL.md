@@ -54,6 +54,56 @@ allowed-tools:
   добавлением, не правкой → `references/voice-and-soul.md` (техника),
   `references/voice-profile.md` (целевая интонация).
 
+## Дополнительные tells (upstream humanizer)
+
+То, чего нет ни в блэклистах, ни в `sentence-patterns.md`, — разнесено по тем
+же трём слоям. Источник — upstream `humanizer` (Википедия «Signs of AI
+writing»); формулировки свои, дословных заимствований нет.
+
+**Слой 2 — синтаксис и структура:**
+
+- **Elegant variation** — машина избегает повтора слова и гоняет синонимы
+  («the protagonist → the main character → the central figure → the hero»).
+  Человек повторяет слово или ставит местоимение. Назвал один раз — держись
+  этого слова, не изобретай новое.
+- **Формульные секции** «Challenges / Future Outlook» — «Despite its X, Y
+  faces several challenges… Despite these challenges, Y continues to…».
+  Секцию удалить целиком или заменить конкретным фактом.
+- **Разорванный заголовок** — заголовок, а под ним одно предложение-пересказ
+  самого заголовка до сути. Пересказ убрать, начинать сразу с дела.
+- **Риторический вопрос с немедленным ответом** — «What makes a good API? It
+  comes down to…», «Ever wondered…?». Вопрос не сообщает ничего — свернуть в
+  утверждение.
+- **Punchy kickers** — ударный цитируемый обрубок в конце каждого абзаца
+  («Not promises. It just works. Every time.»), staccato «X. And Y. And Z.»,
+  cutesy-аппозиции («the catalog, honestly priced»). От парцелляции
+  (`literary-logic-editing.md`) отличается: там фрагмент без грамматического
+  ядра, здесь — шоу-ритм. Свернуть в полноценное предложение.
+- **Reassurance kickers** — «And that's okay.», «no shame in…», «you're not
+  alone», «…and there's nothing wrong with that». Читателя не надо утешать:
+  сказал — остановился.
+- **Notability-пафос** — «cited in The New York Times, BBC…», «active social
+  media presence», «written by a leading expert». Заменить одним конкретным
+  фактом (кто, когда, что сказал).
+- **Натужные метафоры** — вымученная или смешанная метафора, либо метафора,
+  объяснённая сразу после себя. Не окупается — вырезать и сказать прямо
+  (`positive-craft.md`, свойство 3).
+
+**Слой 1 — лексика:**
+
+- **Travel-brochure** (частый в «О нас» и культурных текстах): nestled,
+  breathtaking, must-visit, in the heart of, natural beauty, stunning, renowned,
+  boasts a, picturesque, iconic — нейтральное описание плюс один реальный факт.
+- **Marketing-клише сверх блэклиста**: deep dive, double down, game-changer,
+  take a step back, on the same page, lean into, unpack (перед анализом),
+  moving forward, when it comes to, in a world where.
+- **Дефисные пары с идеальной консистентностью**: data-driven, real-time,
+  long-term, end-to-end, cross-functional, client-facing, decision-making,
+  high-quality. Человек дефисует непоследовательно — часть оставь слитно.
+- **Filler-свёртки**: in order to → to; due to the fact that → because; at this
+  point in time → now; in the event that → if; has the ability to → can; it is
+  important to note that → (убрать).
+
 ## Воркфлоу
 
 1. Прочитай текст вслух — поймай ритм. Метроном = AI.

@@ -42,6 +42,12 @@ review-owned AI-bug patterns, which have no spine row. SEV: `BLOCK` (violates
 baseline/carve-out/ban — not mergeable), `WARN` (fix now, cheaper than later),
 `INFO` (note, no action forced).
 
+A `BLOCK`'s `<what>`, phrased for a handoff, states where the defect is, how it
+reproduces, and why it violates the baseline/carve-out; the `<fix>` states the
+minimum outcome that resolves it. That four-part bar is exactly what a "request
+changes" handoff must carry (below) — a `BLOCK` that only says "wrong" gives
+the author no reproducible target.
+
 **The bar for surfacing a finding scales inversely with severity.** Clear
 bug/security issue → favor recall, don't skip a genuine problem on a narrow
 trigger. Lower-severity style/quality → favor precision, no flag without a
@@ -81,6 +87,64 @@ bad: "This handler might benefit from reconsidering its abstraction layers." goo
   the tag format, ask 3-5 questions a senior engineer would ask, each anchored
   to a real file:line ("`orders.go:44` retries on 4xx — intentional, or 5xx
   only?"). Run one shape at a time; use both only when asked.
+
+## Requesting and handing off review
+
+A review request is the diff plus its declared context (above), not "look at
+this" — a request missing mode/register/authority makes the reviewer invent
+findings the author was told to produce, so say so once and review at the
+fallback. Two sides, one handoff contract.
+
+- **No self-verification.** The author does not clear their own diff — a fresh
+  reviewer context finds what the author's memory of intent glosses over. The
+  reviewer sees ONLY the diff and the scanner/static output; no shared context
+  with the author. Spawning that fresh reviewer as a subagent: dispatch contract
+  in [`../../shared/subagents.md`](../../shared/subagents.md).
+- **Fail-closed verdict.** A reviewer response that can't be parsed, or that
+  arrives without its evidence, is a FAIL — never a pass. Only an explicitly
+  clean verdict clears the diff.
+- **Handoff-as-claim.** A green summary ("all tests pass", "builds", "done") is
+  an `evid:` claim, not proof (`references/tags.md`); a passing verdict must
+  name the checks actually run, or it's a rubber-stamp of the author's prose.
+- **Baseline-aware regressions.** Capture the failure count BEFORE the change
+  (stash, run, pop); only NEW failures block. A pre-existing failure is not this
+  diff's regression, and blaming it hides the real one.
+- **Non-code deliverable** — inspect the complete artifact, not just its
+  summary; check correctness, completeness, formatting, and provenance, and
+  validate any referenced URL or external fact the verdict turns on.
+- **Terminal verdict.** Exactly one: **approve** (ACs and checks pass — name the
+  checks), **request changes** (correctable defects — the `BLOCK` path, returns
+  the diff to its author), or **escalate** (a human decision or an external
+  prerequisite the author can't resolve). Ordinary rework is never an
+  escalation; reserve it for a genuine blocker.
+- **Role separation.** The reviewer lists findings and never edits the
+  implementation (boundary 3) — editing the deliverable hides ownership and
+  breaks the re-review boundary. Corrections go back to the builder.
+
+Request shape: `<diff> + declared context`. Verdict shape: `approve — checks
+run: <list>` / `request changes — <n> BLOCKs, returned to author` / `escalate —
+<decision or prerequisite needed>`.
+
+## Re-review rounds — vary the lens
+
+Re-running round 1's lens on round 3 mostly re-finds what round 1 already
+found. When a diff is reviewed more than once (prior human/bot comments, or a
+re-review after a fix), lead each round with a different lens so different
+defect classes surface; the baseline passes still apply every round — the lens
+sets what you weight, not what you skip.
+
+| Round | Lens | Lead with |
+|---|---|---|
+| 1 | artifact | Cold read of the diff before the author's prose, then reconcile every mismatch against the summary. |
+| 2 | execution | Check it out and run it — build, test, exercise the reported path; verify each claim empirically, not by re-reading. |
+| 3+ | contract | Re-read the ORIGINAL task body and acceptance criteria, audit strictly against them, and confirm every prior round's requested change actually landed. |
+
+A prior finding is Resolved only when the code it pointed to is gone from the
+current diff — never on a commit message saying "fixed"
+(`references/review-process.md`). The same holds for a fan-out: give each
+parallel reviewer a DIFFERENT lens (one diff-only, one full-context, one
+checkout-and-run) — identical briefs produce correlated verdicts and duplicate
+findings.
 
 ## References — load on demand
 
@@ -124,6 +188,12 @@ bad: "This handler might benefit from reconsidering its abstraction layers." goo
 8. Route a repo-wide over-engineering audit to impulse-shrink, and a
    whole-service spec review to impulse-project-management.
 9. "stop impulse" reverts to default review style.
+10. Reviewer independence: a review the author requested still runs blind (diff
+    + scanner only) — self-verification by the author is not a pass, and a
+    verdict with no named checks behind it is a rubber-stamp, not an approval.
+11. On a re-review, re-test the previously-failing path and confirm each prior
+    requested change landed — checking only the new code lets a half-applied fix
+    through (`references/review-process.md`).
 
 The rule this whole skill leans on: a finding with no locatable failure
 scenario is a false positive, not a WARN — cite the spine ID, don't invent
@@ -139,3 +209,11 @@ from memory.
   authority) before judging it?
 - Does the review end with `net: -<N> lines possible.` or `Lean. Ship.`?
 - Did you list findings only, leaving fixes to the builder skill?
+- On a handoff, does the verdict name the checks actually run, or is it a
+  rubber-stamp of the author's summary?
+- Baseline-aware: were new test/lint failures compared against the pre-change
+  baseline, or is a pre-existing failure being blamed on this diff?
+- On a re-review, were the previously-requested changes re-tested and every
+  prior round's items confirmed landed?
+- Did the review leave the implementation untouched, routing corrections back
+  to the builder?

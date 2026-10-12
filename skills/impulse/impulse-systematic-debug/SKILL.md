@@ -8,7 +8,11 @@ description: "Disciplined bug hunting instead of changing code at random — use
 Random edits until it works is not debugging — it's gambling that leaves the
 real cause live. **The one rule that matters: fix only after you can
 reproduce the bug and name its cause in one sentence.** Output is a fix plus
-proof it fixed the named cause — not "seems fine now."
+proof it fixed the named cause — not "seems fine now." Use this for ANY
+observed failure — failing or flaky test, prod incident, regression, perf,
+build, integration — and especially when the pressure is loudest ("just one
+quick fix"): that is exactly when guessing costs the most and the loop pays
+off fastest.
 
 ## The loop — do not skip steps
 
@@ -30,7 +34,35 @@ proof it fixed the named cause — not "seems fine now."
    refactor, no "while I'm here." One bug, one minimal change.
 6. **Prove it.** Re-run the repro → gone. Add a regression test that FAILS
    without the fix (RED first — see `impulse-backend/references/testing.md`). "Can't
-   repro anymore" without a test is not proof.
+   repro anymore" without a test is not proof. Then run the full suite, not
+   just the one test — a fix that greens the repro and reddens something else
+   isn't a fix.
+
+### Building the repro — the loop is the work
+
+When no clean repro exists, constructing one IS the job; guessing a fix
+instead is the failure this skill exists to prevent. Try, roughly in order:
+
+1. A failing test at the seam that reaches the bug (unit / integration / e2e).
+2. An HTTP script / curl against a running dev server.
+3. A CLI invocation with fixture input, diffing stdout/stderr against expected.
+4. A headless-browser script (Playwright/Puppeteer) asserting on DOM, console or network.
+5. Replay a captured trace: HAR, request payload, event log, queue message, webhook body.
+6. A throwaway harness that boots the smallest useful slice and calls the failing path.
+7. A property/fuzz loop when the bug is intermittent wrong output over a broad input space.
+8. A bisection harness fit for `git bisect run` when the bug appeared between two known states.
+9. A differential loop comparing old vs new, two configs, two providers, two datasets.
+10. Human-in-the-loop only as a last resort — script the human steps so the loop stays structured.
+
+Once it exists, tighten it on three axes: **faster** (cache setup, narrow
+scope, skip unrelated init), **sharper signal** (assert the exact symptom, not
+generic success), **more deterministic** (pin time, seed randomness, isolate
+the filesystem, freeze the network).
+
+For a non-deterministic bug the immediate goal is a higher reproduction rate,
+not perfection: run the trigger 100x, parallelize, add stress, narrow the
+timing window, inject sleeps. A 50% flake is debuggable; a 1% flake usually
+is not — get the rate up before you dig.
 
 Techniques per bug class (heisenbug, flaky test, race, leak, works-on-my-
 machine, prod-only): `references/techniques.md`.
@@ -54,8 +86,10 @@ machine, prod-only): `references/techniques.md`.
    (`[DEBUG-a4f2]`) — cleanup becomes one grep instead of a memory test.
 7. **Three failed fixes = stop fixing, question the architecture.** At that
    point it's not a failed hypothesis — the component's design is likely
-   wrong for the problem. Escalate to `impulse-brainstorm`/an ADR instead of a
-   fourth patch.
+   wrong for the problem. The signals: each fix reveals new shared
+   state/coupling in a *different* place, fixes demand "massive refactoring"
+   to land, each fix spawns new symptoms elsewhere. Escalate to
+   `impulse-brainstorm`/an ADR instead of a fourth patch.
 8. **Debug spiral (conversation-level, distinct from rule 7's fix-level
    trigger — from ayghri/i-have-adhd, MIT):** if the last three turns were
    all "still broken," stop iterating on code entirely. In place of a fourth
@@ -64,6 +98,59 @@ machine, prod-only): `references/techniques.md`.
    guessing wrong; rule 7 fires on failed fixes to the same bug, this one
    fires on the conversation pattern regardless of whether each attempt
    counted as a distinct "fix."
+
+## Method notes
+
+Extra moves that don't fit the six steps but earn their place:
+
+- **Minimize the repro.** Once the loop is red, shrink it to the smallest
+  scenario that still goes red — cut inputs, callers, config, data and steps
+  ONE at a time, re-running after each cut. Keep only what's load-bearing;
+  done when removing any remaining element turns the loop green. That minimal
+  repro is usually the cleanest regression test. This is delta-debugging by
+  hand (same ddmin principle as `git bisect`, applied to inputs not commits).
+- **Instrument every component boundary.** In a multi-component system
+  (API → service → db, CI → build → deploy), before proposing fixes, log what
+  enters and exits EACH boundary and verify config/env propagation. Run once
+  to see WHERE it breaks, THEN investigate only that component. A component
+  that didn't fail is not the bug.
+- **Trace the bad value upstream.** Don't stop where it surfaced — find where
+  it originated and what handed it the bad value, then fix at the source, not
+  at the symptom.
+- **Diff against a working analogue.** Find similar working code in the same
+  codebase, read the reference implementation COMPLETELY (don't skim), then
+  list every difference however small — "that can't matter" is exactly how you
+  miss the cause.
+- **Rank 3-5 falsifiable hypotheses before testing any.** Rank by likelihood
+  and cheapness to falsify; each must make a testable prediction ("if X is the
+  cause, changing or observing Y makes Z happen"). Discard any with no
+  prediction. If the user is present, show the ranked list — domain knowledge
+  can re-rank it instantly.
+- **Prefer a breakpoint to a print.** With a debugger/REPL available, one
+  breakpoint beats ten logs; tag any log you do add with the session marker
+  (rule 6) so cleanup stays one grep.
+- **Say "I don't understand X" out loud** rather than pretending — an honest
+  unknown is cheaper than a guessed fix. Research it or ask, don't bluff.
+- **Delegate a read-only investigation** when the search spans many files or
+  components: hand a subagent the exact error, file and repro command, and a
+  goal of "report findings, do NOT fix yet". It localizes the fault without
+  you spending the context to read everything yourself.
+
+## Red flags — stop and re-enter the loop
+
+When any of these surface in your own reasoning, you are gambling, not
+debugging:
+
+- "Quick fix for now, investigate later."
+- "Just try changing X and see if it works."
+- "Add a few changes, run the tests."
+- "It's probably X, let me fix that."
+- "I don't fully understand, but this might work."
+- "Skip the test, I'll verify by hand."
+- "One more fix attempt" — after two already failed.
+- Each fix reveals a new problem somewhere else.
+
+Every one of these means: back to step 1, keep bisecting.
 
 ## Boundaries
 
@@ -82,6 +169,7 @@ machine, prod-only): `references/techniques.md`.
   trace you quoted?
 - Did you change one thing at a time, not a batch of edits?
 - Does a new regression test fail without your fix and pass with it?
+- Does the full suite still pass — no fresh breakage from the fix?
 - Is all debug scaffolding (temp logs/prints/sleeps) removed or tagged for
   cleanup?
 
