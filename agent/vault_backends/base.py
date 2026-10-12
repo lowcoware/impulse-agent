@@ -95,9 +95,9 @@ def _cfg() -> Dict:
 
 
 def external_backend_classes():
-    from agent.vault_backends.bitwarden import BitwardenLoginBackend
-    from agent.vault_backends.onepassword import OnePasswordLoginBackend
-    return (OnePasswordLoginBackend, BitwardenLoginBackend)
+    # impulse: внешних менеджеров паролей в форке нет (1Password и Bitwarden вырезаны вместе
+    # с agent/secret_sources), вернуть вместе с ними, если понадобится подстановка из внешнего менеджера.
+    return ()
 
 
 def is_installed(name: str) -> bool:
@@ -107,10 +107,7 @@ def is_installed(name: str) -> bool:
     explicit = str(section.get("binary_path") or "") if isinstance(section, dict) else ""
     if explicit:
         return Path(explicit).is_file()
-    if name == "onepassword":
-        from agent.secret_sources.onepassword import find_op
-        return find_op() is not None
-    return shutil.which("bw") is not None
+    return shutil.which("op" if name == "onepassword" else "bw") is not None
 
 
 def is_enabled(name: str) -> bool:
