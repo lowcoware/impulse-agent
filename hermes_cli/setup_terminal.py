@@ -276,6 +276,8 @@ def _setup_backend_plugin(config: dict, backend: str) -> None:
         _setup.print_warning(f"Backend plugin setup hook failed: {exc}")
 
 
+from tools.environments.docker_runtime import docker_runtime_name, find_docker
+
 _BUILTIN_TERMINAL_BACKENDS = [
     ("local", "Local - run directly on this machine (default)"),
     ("ssh", "SSH - run on a remote machine")]

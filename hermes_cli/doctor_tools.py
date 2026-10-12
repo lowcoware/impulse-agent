@@ -142,6 +142,8 @@ def _check_git_and_rg(should_fix: bool, f: Finding) -> None:
         check_info(f"Install for faster search: {_system_package_install_cmd('ripgrep')}")
 
 
+from tools.environments.docker_runtime import docker_runtime_name, docker_runtime_start_hint, find_docker
+
 # impulse: local + ssh only, matching tools/terminal_tool_backends.py.
 _BUILTIN_TERMINAL_BACKENDS = {"local", "ssh"}
 
@@ -263,7 +265,7 @@ def _check_terminal_backend(should_fix: bool, f: Finding) -> None:
     if running_in_container and terminal_env != "docker":
         check_info("Running inside a container — using local terminal backend (docker-in-docker is not configured by default)")
         terminal_env = "local"
-    # impulse: docker backend removed, so the doctor no longer probes for it.
+    _check_docker_backend(terminal_env, running_in_container, f.issues)
     if terminal_env in _BACKEND_CHECKS:
         _BACKEND_CHECKS[terminal_env](f.issues)
     elif terminal_env not in _BUILTIN_TERMINAL_BACKENDS:
