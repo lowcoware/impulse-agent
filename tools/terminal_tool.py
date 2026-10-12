@@ -48,7 +48,7 @@ from tools.terminal_tool_config import (
     _plugin_env_flag, _quiet, _safe_getcwd, _tenv, _tenv_bool,
 )
 from tools.terminal_tool_backends import (
-    _REQUIREMENT_CHECKERS, _VERCEL_SANDBOX_DEFAULT_CWD, _check_plugin_requirements,
+    _REQUIREMENT_CHECKERS, _check_plugin_requirements,
     _record_unavailable_reason, terminal_backend_unavailable_reason,  # noqa: F401 — re-exported
 )
 # display_hermes_home imported lazily at call site (stale-module safety during hermes update)
@@ -634,7 +634,8 @@ def _ensure_terminal_env_bridged() -> None:
 
 
 # Default cwd per backend; anything else (container backends, plugins) is "/root".
-_DEFAULT_CWD_BY_BACKEND = {"ssh": "~", "vercel_sandbox": _VERCEL_SANDBOX_DEFAULT_CWD}
+# impulse: local + ssh only, so ssh is the only backend with its own default cwd.
+_DEFAULT_CWD_BY_BACKEND = {"ssh": "~"}
 
 
 def _resolve_config_cwd(env_type: str, mount_docker_cwd: bool) -> tuple:

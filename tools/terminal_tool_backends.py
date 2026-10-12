@@ -10,11 +10,7 @@ import shutil
 import subprocess
 from typing import Any, Dict, Optional
 
-from tools.environments.docker import DockerEnvironment as _DockerEnvironment
 from tools.environments.local import LocalEnvironment as _LocalEnvironment
-from tools.environments.managed_modal import ManagedModalEnvironment as _ManagedModalEnvironment
-from tools.environments.modal import ModalEnvironment as _ModalEnvironment
-from tools.environments.singularity import SingularityEnvironment as _SingularityEnvironment
 from tools.environments.ssh import SSHEnvironment as _SSHEnvironment
 from tools.managed_tool_gateway import is_managed_tool_gateway_ready
 from tools.terminal_tool_config import _get_plugin_env_provider
@@ -49,9 +45,9 @@ def terminal_backend_unavailable_reason() -> Optional[str]:
     return _last_unavailable_reason
 
 
-_VERCEL_SANDBOX_DEFAULT_CWD = "/vercel/sandbox"
 _SUPPORTED_VERCEL_RUNTIMES = ("node24", "node22", "python3.13")
-_BUILTIN_BACKENDS = "local, docker, singularity, modal, daytona, vercel_sandbox, ssh"
+# impulse: local + ssh only, revisit if a hosted sandbox backend is wanted.
+_BUILTIN_BACKENDS = "local, ssh"
 
 # Config -> kwargs shapers, driven by (out_key, config_key, default) tables. The container table's
 # (key, default) literal is intentionally greppable; tools/terminal_tool.py keeps its own for the AST test.
@@ -228,9 +224,7 @@ def _build_plugin_env(*, env_type, image, cwd, timeout, cc, task_id, **_):
 
 
 # Built-in backend -> builder. Anything else is looked up in the plugin registry.
-_ENV_BUILDERS = {"local": _build_local_env, "docker": _build_docker_env, "singularity": _build_singularity_env,
-                 "modal": _build_modal_env, "daytona": _build_daytona_env, "vercel_sandbox": _build_vercel_env,
-                 "ssh": _build_ssh_env}
+_ENV_BUILDERS = {"local": _build_local_env, "ssh": _build_ssh_env}
 
 
 def _create_environment(env_type: str, image: str, cwd: str, timeout: int,
@@ -308,23 +302,14 @@ def _daytona_post(config: Dict[str, Any]) -> bool:
     return get_secret("DAYTONA_API_KEY") is not None
 
 
+# impulse: local + ssh only, revisit if a hosted sandbox backend is wanted.
 _BACKEND_SPECS: Dict[str, Dict[str, Any]] = {
     "local": {},
-    "docker": {"binary": (lambda: importlib.import_module("tools.environments.docker").find_docker(), "version",
-                          "Docker is not installed — no docker executable in PATH or the usual install locations")},
-    "singularity": {"binary": (lambda: shutil.which("apptainer") or shutil.which("singularity"), "--version", None)},
     "ssh": {"pre": _ssh_pre},
-    "modal": {"pre": _modal_pre,
-              "module": ("modal", "modal is required for direct modal terminal backend: pip install modal")},
-    "vercel_sandbox": {"pre": _check_vercel},
-    "daytona": {"post": _daytona_post},
 }
 
 
-_PROBE_FAILED_REASONS = {
-    "docker": "Docker is installed but the Docker daemon is not running",
-    "singularity": "Apptainer/Singularity is installed but `--version` failed, so the install looks broken",
-}
+_PROBE_FAILED_REASONS: Dict[str, str] = {}
 
 
 def _check_requirements(env_type: str, config: Dict[str, Any]) -> bool:
@@ -361,4 +346,3 @@ def _check_plugin_requirements(config: Dict[str, Any]) -> bool:
 
 # Built-in backend -> requirements checker; unknown backends go to the plugin registry.
 _REQUIREMENT_CHECKERS = {name: functools.partial(_check_requirements, name) for name in _BACKEND_SPECS}
-_check_vercel_sandbox_requirements = _REQUIREMENT_CHECKERS["vercel_sandbox"]  # used by code_execution_tool

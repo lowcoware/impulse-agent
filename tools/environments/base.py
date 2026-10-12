@@ -742,3 +742,16 @@ def __getattr__(name):  # PEP 562 — lazy so no import cycles
     warn_once(__name__, name, *target)
     return getattr(importlib.import_module(target[0]), target[1])
 # ---- END PLUGIN-COMPAT ----
+
+
+def get_scratch_dir() -> Path:
+    """``TERMINAL_SCRATCH_DIR`` override, else the sandbox directory itself.
+
+    Lived in the singularity backend, which is gone from this fork; the lifecycle
+    cleanup still needs one place to look for leftover sandbox directories, so it
+    moved here. impulse: no HPC /scratch branch, revisit if a cluster backend returns.
+    """
+    custom = os.getenv("TERMINAL_SCRATCH_DIR")
+    if custom:
+        return Path(custom)
+    return get_sandbox_dir()

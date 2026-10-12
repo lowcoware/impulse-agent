@@ -279,14 +279,8 @@ def _setup_backend_plugin(config: dict, backend: str) -> None:
 
 _BUILTIN_TERMINAL_BACKENDS = [
     ("local", "Local - run directly on this machine (default)"),
-    ("docker", "Docker/Podman - isolated container with configurable resources"),
-    ("modal", "Modal - serverless cloud sandbox"), ("ssh", "SSH - run on a remote machine"),
-    ("daytona", "Daytona - persistent cloud development environment"),
-    ("vercel_sandbox", "Vercel Sandbox - cloud microVM with snapshot filesystem persistence")]
-_TERMINAL_BACKEND_SETUP = {
-    "local": _setup_backend_local, "docker": _setup_backend_docker, "singularity": _setup_backend_singularity,
-    "modal": _setup_backend_modal, "daytona": _setup_backend_daytona, "vercel_sandbox": _setup_backend_vercel,
-    "ssh": _setup_backend_ssh}
+    ("ssh", "SSH - run on a remote machine")]
+_TERMINAL_BACKEND_SETUP = {"local": _setup_backend_local, "ssh": _setup_backend_ssh}
 # Backend -> env var mirrored from config after setup (config.yaml is the source of truth, but
 # terminal_tool reads these from .env).
 _BACKEND_ENV_MIRROR = {"modal": ("TERMINAL_MODAL_MODE", "modal_mode", "auto"),

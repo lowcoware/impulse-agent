@@ -15,7 +15,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Any, Dict, Optional
-from tools.environments.singularity import _get_scratch_dir
+from tools.environments.base import get_scratch_dir as _get_scratch_dir
 from tools.terminal_tool_backends import (
     _container_config_from_config,
     _ssh_config_from_config,
