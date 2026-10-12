@@ -258,12 +258,6 @@ def _setup_write_config(console: Console, args: argparse.Namespace, mappings, ca
     proxy_cfg.setdefault("auto_install", True)
     proxy_cfg.setdefault("enforce_on_docker", True)
     # impulse: внешние менеджеры паролей в форке вырезаны — credential_source всегда env.
-    # Режим bitwarden вернуть вместе с agent/secret_sources и флагом --from-bitwarden.
-    if proxy_cfg.get("credential_source") == "bitwarden":
-        console.print(
-            "[yellow]credential_source was bitwarden — switching to env: "
-            "Bitwarden support is not part of this build.[/yellow]"
-        )
     proxy_cfg["credential_source"] = "env"
     save_config(cfg)
     return proxy_cfg

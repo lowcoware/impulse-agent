@@ -1069,16 +1069,8 @@ _SCOPED_PROVIDER_REGISTRARS: Tuple[Tuple[str, str, str, str, str, str, Dict[str,
      "terminal environment provider",
      "Register a :class:`agent.terminal_env_provider.TerminalEnvironmentProvider`; ``provider.name`` "
      "is matched by ``terminal.backend`` when no built-in backend has that name. Built-in names (local, "
-     "docker, singularity, modal, daytona, vercel_sandbox, ssh) are rejected — plugins never shadow "
-     "in-tree backends.",
+     "ssh) are rejected — plugins never shadow in-tree backends.",
      {"normalize": "lower", "reject_message": "Plugin '%s' terminal environment provider rejected: %s"}),
-    ("register_secret_source", "secret_source", "agent.secret_sources.registry",
-     "agent.secret_sources.base:SecretSource", "secret source",
-     "Register a :class:`agent.secret_sources.base.SecretSource`, run by ``load_hermes_dotenv()`` "
-     "(after ``~/.hermes/.env``, before credentials are read) when ``secrets.<name>`` is enabled. The "
-     "orchestrator owns ordering/precedence/provenance; the source only fetches. Since dotenv usually "
-     "loads before discovery, the manager re-pulls enabled plugin sources afterwards.",
-     {"normalize": None, "register": "register_source", "param": "source"}),
     ("register_tts_provider", "tts_provider", "agent.tts_registry",
      "agent.tts_provider:TTSProvider", "TTS provider",
      "Register an :class:`agent.tts_provider.TTSProvider`; ``provider.name`` is matched by "

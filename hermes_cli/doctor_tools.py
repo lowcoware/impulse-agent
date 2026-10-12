@@ -196,17 +196,6 @@ def _require(cond, ok, bad, issue: str, issues: list[str]) -> None:
         issues.append(issue)
 
 
-def _check_daytona_backend(issues: list[str]) -> None:
-    _require(os.getenv("DAYTONA_API_KEY"), ("Daytona API key", "(configured)"),
-             ("Daytona API key missing", "(needed for the 'daytona' terminal backend)"),
-             "run `hermes setup terminal` (Daytona) to enter it.", issues)
-    try:
-        from daytona import Daytona  # noqa: F401 — SDK presence check
-        check_ok("daytona SDK", "(installed)")
-    except ImportError:
-        _fail_and_issue("daytona SDK not installed", "(pip install daytona)", "Install daytona SDK: pip install daytona", issues)
-
-
 def _check_vercel_backend(issues: list[str]) -> None:
     from tools.terminal_tool_backends import _SUPPORTED_VERCEL_RUNTIMES
     runtime = os.getenv("TERMINAL_VERCEL_RUNTIME", "node24").strip() or "node24"
@@ -248,7 +237,7 @@ def _check_plugin_backend(terminal_env: str, issues: list[str]) -> None:
         _require(ok, (label, detail), (label, detail), detail.strip("()"), issues)
 
 
-_BACKEND_CHECKS = {"ssh": _check_ssh_backend, "daytona": _check_daytona_backend, "vercel_sandbox": _check_vercel_backend}
+_BACKEND_CHECKS = {"ssh": _check_ssh_backend}  # impulse: в форке только local и ssh
 
 
 @doctor_check()

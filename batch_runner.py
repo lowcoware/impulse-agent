@@ -212,12 +212,7 @@ def _prepare_container_image(
             if config.get("verbose"):
                 print(f"   Prompt {prompt_index}: Docker image check failed: {img_err}", flush=True)
     from tools.terminal_tool import register_task_env_overrides
-    overrides = {
-        "docker_image": container_image,
-        "modal_image": container_image,
-        "singularity_image": f"docker://{container_image}",
-        "daytona_image": container_image,
-    }
+    overrides = {}  # impulse: в форке только local и ssh — образы контейнеров не используются.
     if prompt_data.get("cwd"):
         overrides["cwd"] = prompt_data["cwd"]
     register_task_env_overrides(task_id, overrides)
