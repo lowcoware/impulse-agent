@@ -10,55 +10,33 @@ from typing import Dict, List, Any, Set, Optional, Tuple
 # (tui_gateway/server.py::_load_enabled_toolsets). HA, kanban and computer_use
 # entries are further gated by their tools' check_fns.
 _HERMES_CORE_TOOLS = [
-    "web_search",
-    "web_extract",
-    "terminal",
-    "process_manage",
-    "read_file",
-    "write_file",
-    "patch",
-    "search_files",
-    "vision_analyze",
-    "skills_list",
-    "skill_view",
-    "skill_manage",
-    "browser_navigate",
-    "browser_snapshot",
-    "browser_click",
-    "browser_type",
-    "browser_scroll",
-    "browser_back",
-    "browser_press",
-    "browser_get_images",
-    "browser_vision",
-    "browser_console",
-    "chrome_devtools",
-    "browser_dialog",
-    "todo_list",
-    "memory",
+    "web_search", "web_extract",
+    "terminal", "process_manage",
+    "read_file", "write_file", "patch", "search_files",
+    "vision_analyze", "image_generate",
+    "skills_list", "skill_view", "skill_manage",
+    "browser_navigate", "browser_snapshot", "browser_click",
+    "browser_type", "browser_scroll", "browser_back",
+    "browser_press", "browser_get_images",
+    "browser_vision", "browser_console", "chrome_devtools", "browser_dialog",
+    "browser_vault_list", "browser_vault_unlock", "browser_vault_fill", "browser_vault_save_login", "browser_vault_enter_code",  # ride with the browser
+    "browser_exec",  # replaces the other browser tools when browser.backend is "browser-use"
+    "text_to_speech",
+    "todo_list", "memory",
     "session_search",
     "clarify",
-    "execute_code",
-    "delegate_task",
+    "execute_code", "delegate_task",
     "cronjob_manage",
-    "ha_get_state",
-    "ha_list_services",
-    "ha_call_service",
-    "kanban_show",
-    "kanban_list",
-    "kanban_complete",
-    "kanban_block",
-    "kanban_request_review",
+    "ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service",
+    "kanban_show", "kanban_list",
+    "kanban_complete", "kanban_block", "kanban_request_review",
     "kanban_request_changes",
     "kanban_heartbeat",
-    "kanban_comment",
-    "kanban_create",
-    "kanban_link",
+    "kanban_comment", "kanban_create", "kanban_link",
     "kanban_unblock",
-    "kanban_attach",
-    "kanban_attach_url",
-    "kanban_attachments",
+    "kanban_attach", "kanban_attach_url", "kanban_attachments",
     "computer_use",
+    # Service-gated connector account status and authorization links.
     "manage_connections",
 ]
 
@@ -100,6 +78,14 @@ TOOLSETS = {
     # Basic toolsets - individual tool categories
     "web": _ts("Web research and content extraction tools", ["web_search", "web_extract"]),
     "search": _ts("Web search only (no content extraction/scraping)", ["web_search"]),
+    "x_search": _ts(
+        "Search X (Twitter) posts and threads via xAI's built-in x_search Responses "
+        "tool. Read-only public X discovery; use the xurl skill for authenticated X "
+        "API reads and account actions. Available when xAI credentials are configured "
+        "(SuperGrok OAuth or XAI_API_KEY). Off by default; enable in `hermes tools` → "
+        "X (Twitter) Search.",
+        ["x_search"],
+    ),
     "vision": _ts("Image analysis and vision tools", ["vision_analyze"]),
     "computer_use": _ts(
         "Background desktop control via cua-driver (macOS/Windows/Linux) — "
@@ -132,6 +118,7 @@ TOOLSETS = {
         "search (content + files)",
         ["read_file", "write_file", "patch", "search_files"],
     ),
+    "tts": _ts("Text-to-speech: convert text to audio with Edge TTS (free), ElevenLabs, OpenAI, or xAI", ["text_to_speech"]),
     "todo": _ts("Task planning and tracking for multi-step work", ["todo_list"]),
     "memory": _ts("Persistent memory across sessions (personal notes + user profile)", ["memory"]),
     "context_engine": _ts("Runtime tools exposed by the active context engine"),
@@ -163,8 +150,27 @@ TOOLSETS = {
     "clarify": _ts("Ask the user clarifying questions (multiple-choice or open-ended)", ["clarify"]),
     "code_execution": _ts("Run Python scripts that call tools programmatically (reduces LLM round trips)", ["execute_code"]),
     "delegation": _ts("Spawn subagents with isolated context for complex subtasks", ["delegate_task"]),
+    "homeassistant": _ts("Home Assistant smart home control and monitoring", _HA_TOOLS),
+    "kanban": _ts(
+        "Kanban multi-agent coordination — only active when the agent is spawned by "
+        "the kanban dispatcher (HERMES_KANBAN_TASK env set). The dispatcher runs "
+        "inside the gateway by default; see `kanban.dispatch_in_gateway` in "
+        "config.yaml. Lets workers mark tasks done with structured handoffs, enter "
+        "first-class review (request_review — not a block), return review changes, "
+        "block for human input, heartbeat during long ops, comment on threads, attach "
+        "files, and (for orchestrators) list, unblock, and fan out tasks.",
+        [t for t in _HERMES_CORE_TOOLS if t.startswith("kanban_")],
+    ),
     "discord": _ts("Discord read and participate tools (fetch messages, search members, create threads)", ["discord"]),
     "discord_admin": _ts("Discord server management (list channels/roles, pin messages, assign roles)", ["discord_admin"]),
+    "yuanbao": _ts("Yuanbao platform tools - group info, member queries, DM, stickers", _YUANBAO_TOOLS),
+    "feishu_doc": _ts("Read Feishu/Lark document content", ["feishu_doc_read"]),
+    "feishu_drive": _ts("Feishu/Lark document comment operations (list, reply, add)", _FEISHU_TOOLS[1:]),
+    "spotify": _ts(
+        "Native Spotify playback, search, playlist, album, and library tools",
+        ["spotify_playback", "spotify_devices", "spotify_queue", "spotify_search",
+         "spotify_playlists", "spotify_albums", "spotify_library"],
+    ),
 
     # Scenario-specific toolsets
     "debugging": _ts("Debugging and troubleshooting toolkit", ["terminal", "process_manage"], includes=["web", "file"]),
