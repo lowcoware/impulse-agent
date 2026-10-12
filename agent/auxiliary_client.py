@@ -6432,7 +6432,8 @@ def _nous_on_messages_wire(provider_norm: str, model: str) -> bool:
 
 
 _NVIDIA_PROVIDER_NAMES = {"nvidia", "nvidia-nim", "nim", "build-nvidia", "nemotron"}
-_GEMINI_NATIVE_PROVIDER_NAMES = {"gemini", "google", "google-gemini", "google-ai-studio"}
+_GEMINI_NATIVE_PROVIDER_NAMES = {"gemini", "google", "google-gemini", "google-ai-studio",
+                                "gemini-native"}  # нейтральный профиль форка: свой ключ, свой адрес
 
 
 def _is_gemini_native_route(provider_norm: str, effective_base: str) -> bool:

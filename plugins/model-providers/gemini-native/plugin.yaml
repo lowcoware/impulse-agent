@@ -1,0 +1,5 @@
+name: gemini-native-provider
+kind: model-provider
+version: 0.1.0
+description: Native Gemini API provider — operator-supplied endpoint and keys
+author: impulse-agent
